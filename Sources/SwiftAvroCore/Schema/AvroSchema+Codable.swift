@@ -565,7 +565,7 @@ extension AvroSchema.FieldSchema {
             } else {
                 throw AvroSchemaDecodingError.unknownSchemaJsonFormat
             }
-            if let t = try? container.decodeIfPresent(AvroSchema.self, forKey: .type), let type = t {
+            if let type = try? container.decodeIfPresent(AvroSchema.self, forKey: .type) {
                 self.type = type
             } else if let type = try container.decodeIfPresent([AvroSchema].self, forKey: .type) {
                 self.type = .unionSchema(AvroSchema.UnionSchema(branches: type))
@@ -575,29 +575,29 @@ extension AvroSchema.FieldSchema {
             if let order = try? container.decodeIfPresent(String.self, forKey: .order) {
                 self.order = order
             } else {
-                throw AvroSchemaDecodingError.unknownSchemaJsonFormat
+                self.order = nil
             }
-            if let als = try? container.decodeIfPresent(String.self, forKey: .aliases), let alias = als {
+            if let alias = try? container.decodeIfPresent(String.self, forKey: .aliases) {
                 self.aliases = [alias]
             } else if let aliases = try? container.decodeIfPresent([String].self, forKey: .aliases) {
                 self.aliases = aliases
             } else {
-                throw AvroSchemaDecodingError.unknownSchemaJsonFormat
+                self.aliases = []
             }
             if let defaultValue = try? container.decodeIfPresent(String.self, forKey: .defaultValue) {
                 self.defaultValue = defaultValue
             } else {
-                throw AvroSchemaDecodingError.unknownSchemaJsonFormat
+                self.defaultValue = nil
             }
             if let optional = try? container.decodeIfPresent(Bool.self, forKey: .optional) {
                 self.optional = optional
             } else {
-                throw AvroSchemaDecodingError.unknownSchemaJsonFormat
+                self.optional = false
             }
             if let doc = try? container.decodeIfPresent(String.self, forKey: .doc) {
                 self.doc = doc
             } else {
-                throw AvroSchemaDecodingError.unknownSchemaJsonFormat
+                self.doc = nil
             }
         } else {
             throw AvroSchemaDecodingError.unknownSchemaJsonFormat
