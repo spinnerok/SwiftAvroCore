@@ -18,10 +18,10 @@
 
 import Foundation
 import XCTest
-//import AvroClient
+// import AvroClient
 @testable import SwiftAvroCore
 class AvroSchemaCodingTest: XCTestCase {
-    var testTarget: Avro? = nil
+    var testTarget: Avro?
     override func setUp() {
         // Put setup code here. This method is called before the invocation of each test method in the class.
         super.setUp()
@@ -33,17 +33,17 @@ class AvroSchemaCodingTest: XCTestCase {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
         super.tearDown()
     }
-    
+
     private func getPrimitivesSamples(_ type: String) -> [String] {
-        let samples = ["{\"type\":\"\(type)\"}","\"\(type)\""]
+        let samples = ["{\"type\":\"\(type)\"}", "\"\(type)\""]
         return samples
     }
-    
+
     private func getLogicalTimeSample(type: String, logicalType: String) -> String {
         let sample = "{\"type\":\"\(type)\",\"logicalType\":\"\(logicalType)\"}"
         return sample
     }
-    
+
     func testNull() {
         let samples = getPrimitivesSamples("null")
         let schema = testTarget!.decodeSchema(schema: samples.first!)
@@ -56,7 +56,7 @@ class AvroSchemaCodingTest: XCTestCase {
         XCTAssertNotNil(encoded)
         XCTAssertEqual(encoded, samples.last!.data(using: .utf8)!)
     }
-    
+
     func testBoolean() {
         let samples = getPrimitivesSamples("boolean")
         let schema = testTarget!.decodeSchema(schema: samples.first!)
@@ -69,7 +69,7 @@ class AvroSchemaCodingTest: XCTestCase {
         XCTAssertNotNil(encoded)
         XCTAssertEqual(encoded, samples.last!.data(using: .utf8)!)
     }
-    
+
     func testInt() {
         let samples = getPrimitivesSamples("int")
         let schema = testTarget!.decodeSchema(schema: samples.first!)
@@ -82,7 +82,7 @@ class AvroSchemaCodingTest: XCTestCase {
         XCTAssertNotNil(encoded)
         XCTAssertEqual(encoded, samples.last!.data(using: .utf8)!)
     }
-    
+
     func testDate() {
         let sample = getLogicalTimeSample(type: "int", logicalType: "date")
         let schema = testTarget!.decodeSchema(schema: sample)
@@ -92,7 +92,7 @@ class AvroSchemaCodingTest: XCTestCase {
         XCTAssertNotNil(encoded)
         XCTAssertEqual(encoded, sample.data(using: .utf8)!)
     }
-    
+
     func testMillisecond() {
         let sample = getLogicalTimeSample(type: "int", logicalType: "time-millis")
         let schema = testTarget!.decodeSchema(schema: sample)
@@ -102,7 +102,7 @@ class AvroSchemaCodingTest: XCTestCase {
         XCTAssertNotNil(encoded)
         XCTAssertEqual(encoded, sample.data(using: .utf8)!)
     }
-    
+
     func testLong() {
         let samples = getPrimitivesSamples("long")
         let schema = testTarget!.decodeSchema(schema: samples.first!)
@@ -115,7 +115,7 @@ class AvroSchemaCodingTest: XCTestCase {
         XCTAssertNotNil(encoded)
         XCTAssertEqual(encoded, samples.last!.data(using: .utf8)!)
     }
-    
+
     func testMicrosecond() {
         let sample = getLogicalTimeSample(type: "long", logicalType: "time-micros")
         let schema = testTarget!.decodeSchema(schema: sample)
@@ -143,7 +143,7 @@ class AvroSchemaCodingTest: XCTestCase {
         XCTAssertNotNil(encoded)
         XCTAssertEqual(encoded, sample.data(using: .utf8)!)
     }
-    
+
     func testFloat() {
         let samples = getPrimitivesSamples("float")
         let schema = testTarget!.decodeSchema(schema: samples.first!)
@@ -156,7 +156,7 @@ class AvroSchemaCodingTest: XCTestCase {
         XCTAssertNotNil(encoded)
         XCTAssertEqual(encoded, samples.last!.data(using: .utf8)!)
     }
-    
+
     func testDouble() {
         let samples = getPrimitivesSamples("double")
         let schema = testTarget!.decodeSchema(schema: samples.first!)
@@ -169,7 +169,7 @@ class AvroSchemaCodingTest: XCTestCase {
         XCTAssertNotNil(encoded)
         XCTAssertEqual(encoded, samples.last!.data(using: .utf8)!)
     }
-    
+
     func testString() {
         let samples = getPrimitivesSamples("string")
         let schema = testTarget!.decodeSchema(schema: samples.first!)
@@ -182,7 +182,7 @@ class AvroSchemaCodingTest: XCTestCase {
         XCTAssertNotNil(encoded)
         XCTAssertEqual(encoded, samples.last!.data(using: .utf8)!)
     }
-    
+
     func testBytes() {
         let samples = getPrimitivesSamples("bytes")
         let schema = testTarget!.decodeSchema(schema: samples.first!)
@@ -195,7 +195,7 @@ class AvroSchemaCodingTest: XCTestCase {
         XCTAssertNotNil(encoded)
         XCTAssertEqual(encoded, samples.last!.data(using: .utf8)!)
     }
-    
+
     func testLogicDecimalBytes() {
         let samples = """
 {"scale":2,"precision":4,"type":"bytes","logicalType":"decimal"}
@@ -203,7 +203,7 @@ class AvroSchemaCodingTest: XCTestCase {
         let schema = testTarget!.decodeSchema(schema: samples)
         let encoded = try? testTarget!.encodeSchema(schema: schema!)
         let newSchema = testTarget!.decodeSchema(schema: encoded!)
- 
+
         XCTAssertNotNil(schema)
         XCTAssertTrue(schema!.isBytes())
         XCTAssertNotNil(encoded)
@@ -220,54 +220,54 @@ class AvroSchemaCodingTest: XCTestCase {
         XCTAssertNotNil(schema)
         XCTAssertTrue(schema!.isEnum())
         switch schema {
-        case .enumSchema(let attributes)? :
-            XCTAssertEqual(attributes.name , "Suit", "Unexpected enum name.")
+        case .enumSchema(let attributes)?:
+            XCTAssertEqual(attributes.name, "Suit", "Unexpected enum name.")
             XCTAssertEqual(attributes.symbols, expectedSymbols, "enum symbols mismatch.")
-        default :
+        default:
             XCTAssert(false, "Enum Test Failed")
         }
     }
-    
+
     func testArray() {
         let sample = "{\"type\": \"array\", \"items\": \"string\"}"
         let schema = testTarget!.decodeSchema(schema: sample)
         XCTAssertNotNil(schema)
         XCTAssertTrue(schema!.isArray())
         switch schema {
-        case .arraySchema(let attributes)? :
+        case .arraySchema(let attributes)?:
             XCTAssertTrue(attributes.items.isString(), "array items mismatch.")
-        default :
+        default:
             XCTAssert(false, "Array Test Failed")
         }
     }
-    
+
     func testMap() {
         let sample = "{\"type\": \"map\", \"values\": \"long\"}"
         let schema = testTarget!.decodeSchema(schema: sample)
         XCTAssertNotNil(schema)
         XCTAssertTrue(schema!.isMap())
         switch schema {
-        case .mapSchema(let attributes)? :
+        case .mapSchema(let attributes)?:
             XCTAssertTrue(attributes.values.isLong(), "map values mismatch.")
-        default :
+        default:
             XCTAssert(false, "Map Test Failed")
         }
     }
-    
+
     func testFixed() {
         let sample = "{\"type\": \"fixed\", \"size\": 16, \"name\": \"md5\"}"
         let schema = testTarget!.decodeSchema(schema: sample)
         XCTAssertNotNil(schema)
         XCTAssertTrue(schema!.isFixed())
         switch schema {
-        case .fixedSchema(let attributes)? :
+        case .fixedSchema(let attributes)?:
             XCTAssertTrue(attributes.size == 16, "fixed size mismatch.")
             XCTAssertEqual(attributes.name, "md5", "fixed name mismatch.")
-        default :
+        default:
             XCTAssert(false, "Fixed Test Failed")
         }
     }
-    
+
     func testLogicDecimalFixed() {
         let samples = """
 {"scale":2,"precision":4,"type":"fixed","logicalType":"decimal","size":3}
@@ -282,22 +282,22 @@ class AvroSchemaCodingTest: XCTestCase {
         XCTAssertTrue(newSchema!.isFixed())
         XCTAssertTrue(newSchema!.isDecimal())
     }
-    
+
     func testDuration() {
         let sample = "{\"type\": \"fixed\", \"logicalType\": \"duration\", \"size\": 12, \"name\": \"mmddyy\"}"
         let schema = testTarget!.decodeSchema(schema: sample)
         XCTAssertNotNil(schema)
         XCTAssertTrue(schema!.isFixed())
         switch schema {
-        case .fixedSchema(let attributes)? :
+        case .fixedSchema(let attributes)?:
             XCTAssertTrue(attributes.size == 12, "fixed size mismatch.")
             XCTAssertEqual(attributes.name, "mmddyy", "fixed name mismatch.")
             XCTAssertEqual(attributes.logicalType?.rawValue, "duration", "fixed name mismatch.")
-        default :
+        default:
             XCTAssert(false, "Fixed Test Failed")
         }
     }
-    
+
     func testUnion() {
         let sample = "[\"null\", {\"type\":\"fixed\",\"size\": 16, \"name\": \"md5\"}, \"long\"]"
         let schema = testTarget!.decodeSchema(schema: sample)
@@ -326,15 +326,15 @@ class AvroSchemaCodingTest: XCTestCase {
 """
         let schema = testTarget!.decodeSchema(schema: sample)!
         XCTAssertNotNil(schema)
-        XCTAssertEqual(schema.getName(),"Json")
-        XCTAssertEqual(schema.getFullname(),"org.apache.avro.data.Json")
+        XCTAssertEqual(schema.getName(), "Json")
+        XCTAssertEqual(schema.getFullname(), "org.apache.avro.data.Json")
         let r = schema.getRecord()
         XCTAssertEqual(r?.fields.count, 5)
         XCTAssertEqual(r?.fields[0].name, "clientHash")
         XCTAssertTrue(r!.fields[0].type.isFixed())
-        XCTAssertEqual(r!.fields[0].type.getName(),"MD5")
-        XCTAssertEqual(r!.fields[0].type.getFullname(),"org.apache.avro.data.Json.clientHash.MD5")
-        XCTAssertEqual(r!.fields[0].type.getFixedSize(),16)
+        XCTAssertEqual(r!.fields[0].type.getName(), "MD5")
+        XCTAssertEqual(r!.fields[0].type.getFullname(), "org.apache.avro.data.Json.clientHash.MD5")
+        XCTAssertEqual(r!.fields[0].type.getFixedSize(), 16)
         XCTAssertEqual(r?.fields[1].name, "clientProtocol")
         XCTAssertTrue(r!.fields[1].type.isUnion())
         let unionList = r!.fields[1].type.getUnionList()
@@ -371,8 +371,8 @@ class AvroSchemaCodingTest: XCTestCase {
         XCTAssertTrue(innerRecordTypes[0].getUnionList()[0].isString())
         XCTAssertEqual(valueList[5].getRecord()?.fields[0].defaultValue, "default_value")
         XCTAssertTrue(innerRecordTypes[1].isFixed())
-        XCTAssertEqual(innerRecordTypes[1].getName(),"MD5")
-        XCTAssertEqual(innerRecordTypes[1].getFullname(),"org.apache.avro.data.Json.value.innerRecord.serverHash.MD5")
+        XCTAssertEqual(innerRecordTypes[1].getName(), "MD5")
+        XCTAssertEqual(innerRecordTypes[1].getFullname(), "org.apache.avro.data.Json.value.innerRecord.serverHash.MD5")
         XCTAssertTrue(valueList[6].isRecord())
         XCTAssertEqual(valueList[6].getName()!, "innerRecordRef")
         XCTAssertTrue(valueList[7].isArray())
@@ -399,7 +399,7 @@ class AvroSchemaCodingTest: XCTestCase {
             }
         }
     }
-    
+
     static var allTests = [
         ("testString", testString),
         ("testBytes", testBytes),
@@ -413,6 +413,6 @@ class AvroSchemaCodingTest: XCTestCase {
         ("testArray", testArray),
         ("testMap", testMap),
         ("testUnion", testUnion),
-        ("testRecord", testRecord),
+        ("testRecord", testRecord)
         ]
 }

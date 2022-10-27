@@ -22,21 +22,21 @@ public protocol CodecProtocol {
     /// <summary>
     /// Codec types
     /// </summary>
-    //var codec: String {get}
+    // var codec: String {get}
     /// <summary>
     /// Compress data using implemented codec
     /// </summary>
     /// <param name="uncompressedData"></param>
     /// <returns></returns>
     func compress(data: Data) throws -> Data
-    
+
     /// <summary>
     /// Decompress data using implemented codec
     /// </summary>
     /// <param name="compressedData"></param>
     /// <returns></returns>
     func decompress(data: Data) throws -> Data
-    
+
     /// <summary>
     /// Name of this codec type
     /// </summary>
@@ -50,15 +50,15 @@ public struct NullCodec: CodecProtocol {
     public func compress(data: Data) throws -> Data {
         return data
     }
-    
+
     public func decompress(data: Data) throws -> Data {
         return data
     }
-    
+
     public func getName() -> String {
         return codec
     }
-    
+
     init(codecName: String) {
         self.codec = codecName
     }
@@ -69,21 +69,20 @@ public struct Codec: CodecProtocol {
     public init(codec: CodecProtocol) {
         self.codec = codec
     }
-    
+
     public init() {
         self.codec = NullCodec(codecName: AvroReservedConstants.NullCodec)
     }
-    
+
     public func compress(data: Data) throws -> Data {
         return try self.codec.compress(data: data)
     }
-    
+
     public func decompress(data: Data) throws -> Data {
         return try self.codec.decompress(data: data)
     }
-    
+
     public func getName() -> String {
         return codec.getName()
     }
 }
-

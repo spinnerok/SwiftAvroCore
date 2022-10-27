@@ -19,7 +19,7 @@
 /// Enum constants that identify the particular error.
 ///
 // -----------------------------------------------------------------------------
-//extension AvroSchema {
+// extension AvroSchema {
 /// Describes errors that can occur when decoding a message from binary format.
 public enum AvroSchemaDecodingError: Error {
     /// The definition of the message or one of its nested messages has required
@@ -31,7 +31,7 @@ public enum AvroSchemaDecodingError: Error {
     case emptyType
     case typeDuplicateBranchInUnion
 }
-//}
+// }
 /// Describes errors that can occur when decoding a message from binary format.
 public enum AvroSchemaEncodingError: Error {
     /// The definition of the encoding data invalid, typically, the data type is not
@@ -51,7 +51,7 @@ public enum BinaryEncodingError: Error {
     case invalidUnionIndex
     case invalidSchema
     case invalidDecimal
-    
+
     case typeMismatchWithSchemaBool
     case typeMismatchWithSchemaInt
     case typeMismatchWithSchemaInt8

@@ -63,7 +63,7 @@ extension AvroSchema {
             return
         }
     }
-    
+
     mutating func resolvingDifferent(from schema: AvroSchema) throws -> Bool {
         switch self {
         /// If reader's is a union, but writer's is not:
@@ -148,7 +148,7 @@ extension AvroSchema {
 }
 extension AvroSchema.RecordSchema {
     public static func ==(lhs: AvroSchema.RecordSchema, rhs: AvroSchema.RecordSchema) -> Bool {
-        if (lhs.getFullname() != rhs.getFullname()) {return false}
+        if lhs.getFullname() != rhs.getFullname() {return false}
         if lhs.fields.count < rhs.fields.count {return false}
         for field in lhs.fields {
             if !rhs.fields.contains(field) {
@@ -159,7 +159,7 @@ extension AvroSchema.RecordSchema {
         }
         return true
     }
-    
+
     mutating func resolving(from writterRecord: AvroSchema.RecordSchema) throws {
         for field in writterRecord.fields {
             /// set the resolution to accept if the writter's filed match with reader's field
@@ -179,7 +179,7 @@ extension AvroSchema.RecordSchema {
 }
 extension AvroSchema.FieldSchema {
     public static func ==(lhs: AvroSchema.FieldSchema, rhs: AvroSchema.FieldSchema) -> Bool {
-        if (lhs.name != rhs.name) {return false}
+        if lhs.name != rhs.name {return false}
         if lhs.type != rhs.type {return false}
         return true
     }
@@ -267,14 +267,14 @@ extension AvroSchema {
         case let (.fixedSchema(l), .fixedSchema(r)): return l == r
         case let (.enumSchema(l), .enumSchema(r)): return l == r
         case let (.unionSchema(l), .unionSchema(r)): return l == r
-            
+
         case let (.fieldSchema(l), .fieldSchema(r)): return l == r
         case let (.fieldsSchema(l), .fieldsSchema(r)): return l == r
         // otherwise
         default: return false
         }
     }
-    
+
     public func hash(into hasher: inout Hasher) {
         switch self {
         // set attribute as hasher for primitive types
@@ -287,7 +287,7 @@ extension AvroSchema {
         case .bytesSchema(let schema): hasher.combine(schema.type)
         case .stringSchema: hasher.combine(Types.string)
             // set name and namespace as hasher for named types
-        ///TODO: should be more strictly
+        /// TODO: should be more strictly
         case .recordSchema(let schema):
             hasher.combine(schema.namespace)
             hasher.combine(schema.name)
@@ -329,7 +329,7 @@ extension AvroSchema {
             //}*/
         }
     }
-    
+
     public func isNull() -> Bool {
         switch self {
         case .nullSchema: return true
@@ -342,14 +342,14 @@ extension AvroSchema {
         default: return false
         }
     }
-    
+
     public func isInteger() -> Bool {
         switch self {
         case .intSchema, .longSchema: return true
         default: return false
         }
     }
-    
+
     public func isInt() -> Bool {
         switch self {
         case .intSchema: return true
@@ -380,14 +380,14 @@ extension AvroSchema {
         default: return false
         }
     }
-    
+
     public func isByte() -> Bool {
         switch self {
         case .bytesSchema, .fixedSchema: return true
         default: return false
         }
     }
-    
+
     public func isDecimal() -> Bool {
         switch self {
         case .bytesSchema(let param):
@@ -402,7 +402,7 @@ extension AvroSchema {
         }
         return false
     }
-    
+
     public func isString() -> Bool {
         switch self {
         case .stringSchema: return true
@@ -515,7 +515,7 @@ extension AvroSchema {
             return []
         }
     }
-    
+
     func getEnumIndex(_ value: String) -> Int? {
         switch self {
         case .enumSchema(let enums):
@@ -603,7 +603,7 @@ extension AvroSchema {
             return nil
         }
     }
-    
+
     func getRecordInnerTypes() -> [AvroSchema] {
         var innerTypes: [AvroSchema] = []
         switch self {

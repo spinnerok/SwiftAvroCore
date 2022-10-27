@@ -23,7 +23,7 @@ extension AvroDecodableTest {
         ("testPerformanceExample", testPerformanceExample),
         ("testRecord", testRecord),
         ("testString", testString),
-        ("testUnion", testUnion),
+        ("testUnion", testUnion)
     ]
 }
 
@@ -50,7 +50,7 @@ extension AvroEncodableTest {
         ("testRecord", testRecord),
         ("testString", testString),
         ("testTime", testTime),
-        ("testUnion", testUnion),
+        ("testUnion", testUnion)
     ]
 }
 
@@ -81,7 +81,7 @@ extension AvroSchemaCodingTest {
         ("testString", testString),
         ("testTimestampMicro", testTimestampMicro),
         ("testTimestampMilli", testTimestampMilli),
-        ("testUnion", testUnion),
+        ("testUnion", testUnion)
     ]
 }
 
@@ -104,7 +104,7 @@ extension AvroSchemaEquatableTest {
         ("testPerformanceExample", testPerformanceExample),
         ("testRecord", testRecord),
         ("testString", testString),
-        ("testUnion", testUnion),
+        ("testUnion", testUnion)
     ]
 }
 
@@ -113,7 +113,7 @@ extension SwiftAvroCoreTests {
     //   `swift test --generate-linuxmain`
     // to regenerate.
     static let __allTests__SwiftAvroCoreTests = [
-        ("testExample", testExample),
+        ("testExample", testExample)
     ]
 }
 
@@ -123,7 +123,7 @@ public func __allTests() -> [XCTestCaseEntry] {
         testCase(AvroEncodableTest.__allTests__AvroEncodableTest),
         testCase(AvroSchemaCodingTest.__allTests__AvroSchemaCodingTest),
         testCase(AvroSchemaEquatableTest.__allTests__AvroSchemaEquatableTest),
-        testCase(SwiftAvroCoreTests.__allTests__SwiftAvroCoreTests),
+        testCase(SwiftAvroCoreTests.__allTests__SwiftAvroCoreTests)
     ]
 }
 #endif

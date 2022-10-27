@@ -19,62 +19,62 @@
 import Foundation
 
 public class Avro {
-    private var schema: AvroSchema? = nil
+    private var schema: AvroSchema?
     private var schemaEncodingOption: AvroSchemaEncodingOption = .CanonicalForm
     private var encodingOption: AvroEncodingOption = .AvroBinary
     let infoKey = CodingUserInfoKey(rawValue: "encodeOption")!
     private var stream: Data = Data()
     public init() {}
-    
+
     func setSchema(schema: AvroSchema) {
         self.schema = schema
     }
-    
+
     public func getSchema() -> AvroSchema? {
         return self.schema
     }
-    
+
     func defineSchema<T: Codable>(_ value: T) {
         let data = try! JSONEncoder().encode(value)
         self.schema = try! AvroSchema(schema: data, decoder: JSONDecoder())
     }
-    
+
     public func setSchemaFormat(option: AvroSchemaEncodingOption) {
         schemaEncodingOption = option
     }
-    
+
     public func setAvroFormat(option: AvroEncodingOption) {
         encodingOption = option
     }
-    
+
     public func decodeSchema(schema: String) -> AvroSchema? {
         let decoder = JSONDecoder()
         do {
-            //self.schema = try AvroSchema(schemaJson: schema, decoder: decoder)
+            // self.schema = try AvroSchema(schemaJson: schema, decoder: decoder)
             self.schema = try decoder.decode(AvroSchema.self, from: schema.data(using: .utf8)!)
             return self.schema
         } catch {
             fatalError(error.localizedDescription)
         }
     }
-    
+
     public func decodeSchema(schema: Data) -> AvroSchema? {
         let decoder = JSONDecoder()
         do {
-            self.schema = try decoder.decode(AvroSchema.self, from: schema) //try AvroSchema(schema: schema, decoder: decoder)
+            self.schema = try decoder.decode(AvroSchema.self, from: schema) // try AvroSchema(schema: schema, decoder: decoder)
             return self.schema
         } catch {
             fatalError(error.localizedDescription)
         }
     }
-    
+
     public func encodeSchema() throws -> Data {
         if let schema = self.schema {
             return try encodeSchema(schema: schema)
         }
         return Data()
     }
-    
+
     public func encodeSchema(schema: AvroSchema) throws -> Data {
         let encoder = JSONEncoder()
         switch schemaEncodingOption {
@@ -97,20 +97,20 @@ public class Avro {
             fatalError(error.localizedDescription)
         }
     }
-    
+
     public func encode<T: Codable>(_ value: T) throws -> Data {
         if nil == self.schema {
             defineSchema(value)
         }
         do {
             let encoder = AvroEncoder()
-            encoder.setUserInfo(userInfo: [infoKey : encodingOption])
+            encoder.setUserInfo(userInfo: [infoKey: encodingOption])
             return try encoder.encode(value.self, schema: self.schema!)
         } catch {
             throw error
         }
     }
-    
+
     public func decode<T: Codable>(from: Data) throws -> T {
         guard nil != self.schema else {
             throw BinaryEncodingError.noSchemaSpecified
@@ -122,7 +122,7 @@ public class Avro {
             throw error
         }
     }
-    
+
     public func decode(from: Data) throws -> Any? {
         guard nil != self.schema else {
             throw BinaryEncodingError.noSchemaSpecified
@@ -134,10 +134,10 @@ public class Avro {
             throw error
         }
     }
-    
-    public func decodeFromContinue<T: Codable>(from: Data, schema: AvroSchema) throws -> (T,Int) {
+
+    public func decodeFromContinue<T: Codable>(from: Data, schema: AvroSchema) throws -> (T, Int) {
         do {
-            return try (from.withUnsafeBytes{ (pointer: UnsafePointer<UInt8>) in
+            return try (from.withUnsafeBytes { (pointer: UnsafePointer<UInt8>) in
                 let decoder = try AvroBinaryDecoder(schema: schema, pointer: pointer, size: from.count)
                 return try (T.init(from: decoder), from.count - decoder.primitive.available)
             })
@@ -145,7 +145,7 @@ public class Avro {
             throw error
         }
     }
-    
+
     public func newSchema(schema: String) -> AvroSchema? {
         let decoder = JSONDecoder()
         do {
@@ -154,7 +154,7 @@ public class Avro {
             fatalError(error.localizedDescription)
         }
     }
-    
+
     public func newSchema(schema: Data) -> AvroSchema? {
         let decoder = JSONDecoder()
         do {
@@ -163,17 +163,17 @@ public class Avro {
             fatalError(error.localizedDescription)
         }
     }
-    
+
     public func encodeFrom<T: Codable>(_ value: T, schema: AvroSchema) throws -> Data {
         do {
             let encoder = AvroEncoder()
-            encoder.setUserInfo(userInfo: [infoKey : encodingOption])
+            encoder.setUserInfo(userInfo: [infoKey: encodingOption])
             return try encoder.encode(value.self, schema: schema)
         } catch {
             throw error
         }
     }
-    
+
     public func decodeFrom<T: Codable>(from: Data, schema: AvroSchema) throws -> T {
         do {
             let decoder = AvroDecoder(schema: schema)
@@ -182,7 +182,7 @@ public class Avro {
             throw error
         }
     }
-    
+
     public func decodeFrom(from: Data, schema: AvroSchema) throws -> Any? {
         do {
             let decoder = AvroDecoder(schema: schema)
@@ -191,10 +191,9 @@ public class Avro {
             throw error
         }
     }
-    
-    
+
     public func makeFileObjectContainer(schema: String, codec: CodecProtocol) throws -> ObjectContainer {
-        return try ObjectContainer(schema:schema, codec: codec)
+        return try ObjectContainer(schema: schema, codec: codec)
     }
 }
 
@@ -203,7 +202,7 @@ public enum AvroSchemaEncodingOption: Int {
 }
 
 public enum AvroEncodingOption: Int {
-    case AvroBinary = 0, AvroJson//, AvroSize
+    case AvroBinary = 0, AvroJson// , AvroSize
 }
 
 struct SwiftAvroCore {

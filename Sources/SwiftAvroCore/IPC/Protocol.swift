@@ -6,14 +6,14 @@
 //
 
 import Foundation
-public struct AvroProtocol : Equatable, Codable {
+public struct AvroProtocol: Equatable, Codable {
     let type: String = "protocol"
     var name: String
-    var namespace: String? //{get set}
+    var namespace: String? // {get set}
     var types: [AvroSchema]?
-    var messages: Dictionary<String, Message>?
-    var aliases: Set<String>? //{get set}
-    let doc: String? //{get set}
+    var messages: [String: Message]?
+    var aliases: Set<String>? // {get set}
+    let doc: String? // {get set}
     private var typeMap: [String: AvroSchema]
     enum CodingKeys: String, CodingKey {
         case type, name = "protocol", namespace, types, messages, aliases, doc
@@ -22,7 +22,7 @@ public struct AvroProtocol : Equatable, Codable {
     public init(from decoder: Decoder) throws {
         self.resolution = .useDefault
         if let container = try? decoder.container(keyedBy: CodingKeys.self) {
-            if let protocolName = try! container.decodeIfPresent(String.self, forKey: .name){
+            if let protocolName = try! container.decodeIfPresent(String.self, forKey: .name) {
                 self.name = protocolName
             } else {
                 throw AvroSchemaDecodingError.unknownSchemaJsonFormat
@@ -40,7 +40,7 @@ public struct AvroProtocol : Equatable, Codable {
                 }
             } else {
                 self.types = []
-                self.typeMap = [String:AvroSchema]()
+                self.typeMap = [String: AvroSchema]()
             }
             if let aliases = try? container.decodeIfPresent(Set<String>.self, forKey: .aliases) {
                 self.aliases = aliases
@@ -53,7 +53,7 @@ public struct AvroProtocol : Equatable, Codable {
                 self.doc = ""
             }
             let nestContainer = try container.nestedContainer(keyedBy: StringCodingKey.self, forKey: .messages)
-                var messageMap = Dictionary<String, Message>()
+                var messageMap = [String: Message]()
                 for k in nestContainer.allKeys {
                         messageMap[k.stringValue] = try nestContainer.decodeIfPresent(Message.self, forKey: k)
                 }
@@ -64,8 +64,8 @@ public struct AvroProtocol : Equatable, Codable {
     }
 
     public static func == (lhs: AvroProtocol, rhs: AvroProtocol) -> Bool {
-        if (lhs.type != rhs.type) {return false}
-        if (lhs.namespace != rhs.namespace) {return false}
+        if lhs.type != rhs.type {return false}
+        if lhs.namespace != rhs.namespace {return false}
         if lhs.types?.count != rhs.types?.count {return false}
         if let types = lhs.types {
             for t in types {
@@ -76,7 +76,7 @@ public struct AvroProtocol : Equatable, Codable {
         }
         return true
     }
-    
+
     public mutating func addType(schema: AvroSchema) {
         if self.types == nil {
             self.types = [AvroSchema]()
@@ -90,17 +90,17 @@ public struct AvroProtocol : Equatable, Codable {
         types!.append(schema)
         typeMap[schema.getName()!] = schema
     }
-    
+
     public mutating func addMessage(name: String, message: Message) {
         if !message.validate(types: types!) {
             return
         }
         if self.messages == nil {
-            self.messages = Dictionary<String, Message>()
+            self.messages = [String: Message]()
         }
         self.messages![name] = message
     }
-    
+
     public func getRequest(messageName: String) -> [AvroSchema]? {
         if let message = messages![messageName] {
             var msgs = [AvroSchema]()
@@ -113,17 +113,17 @@ public struct AvroProtocol : Equatable, Codable {
         }
         return nil
     }
-    
+
     public func getResponse(messageName: String) -> AvroSchema? {
         if let message = messages![messageName] {
             return typeMap[message.response!]
         }
         return nil
     }
-    
-    public func getErrors(messageName: String) -> [String:AvroSchema]? {
+
+    public func getErrors(messageName: String) -> [String: AvroSchema]? {
         if let message = messages![messageName] {
-            var errors = [String:AvroSchema]()
+            var errors = [String: AvroSchema]()
             for e in message.errors! {
                 if let t = typeMap[e] {
                     errors[t.getName()!] = t
@@ -133,17 +133,17 @@ public struct AvroProtocol : Equatable, Codable {
         }
         return nil
     }
-    
+
     struct StringCodingKey: CodingKey {
         var intValue: Int?
-        
+
         let stringValue: String
-        
+
         init?(stringValue: String) {
             self.stringValue = stringValue
             self.intValue = Int(stringValue)
         }
-        
+
         init?(intValue: Int) {
             self.stringValue = "\(intValue)"
             self.intValue = intValue
@@ -151,7 +151,7 @@ public struct AvroProtocol : Equatable, Codable {
     }
 }
 
-public struct Message : Equatable, Codable {
+public struct Message: Equatable, Codable {
     enum CodingKeys: String, CodingKey {
         case request, response, errors, oneway = "one-way", doc
     }
@@ -161,7 +161,7 @@ public struct Message : Equatable, Codable {
     var errors: [String]?
     let oneway: Bool?
     var resolution: AvroSchema.ResolutionMethod = .useDefault
-    
+
     mutating func addRequest(types: [AvroSchema], name: String, type: String) {
         if self.request == nil {
             self.request = [RequestType]()
@@ -177,7 +177,7 @@ public struct Message : Equatable, Codable {
             }
         }
     }
-    
+
     mutating func addError(types: [AvroSchema], errorName: String) {
         if self.errors == nil {
             self.errors = [String]()
@@ -193,15 +193,15 @@ public struct Message : Equatable, Codable {
             }
         }
     }
-    
-    public func validate(types: [AvroSchema]) ->Bool {
+
+    public func validate(types: [AvroSchema]) -> Bool {
         var typeMap = [String: AvroSchema]()
         for t in types {
             typeMap[t.getName()!] = t
         }
         if let requests = request {
             for req in requests {
-                if !typeMap.contains(where: { (key: String, value: AvroSchema) in
+                if !typeMap.contains(where: { (key: String, _: AvroSchema) in
                     return key == req.type
                 }) {
                     return false
@@ -209,7 +209,7 @@ public struct Message : Equatable, Codable {
             }
         }
         if let res = response {
-            if !typeMap.contains(where: { (key: String, value: AvroSchema) in
+            if !typeMap.contains(where: { (key: String, _: AvroSchema) in
                 return key == res
             }) {
                 return false
@@ -217,7 +217,7 @@ public struct Message : Equatable, Codable {
         }
         if let errs = errors {
             for err in errs {
-                if !typeMap.contains(where: { (key: String, value: AvroSchema) in
+                if !typeMap.contains(where: { (key: String, _: AvroSchema) in
                     return key == err
                 }) {
                     return false

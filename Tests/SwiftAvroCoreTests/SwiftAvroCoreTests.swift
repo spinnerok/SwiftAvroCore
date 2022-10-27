@@ -25,7 +25,7 @@ final class SwiftAvroCoreTests: XCTestCase {
         }
         // Make an Avro instance
         let avro = Avro()
-        let myModel = Model(requestId: 42, requestName: "hello", parameter: [1,2])
+        let myModel = Model(requestId: 42, requestName: "hello", parameter: [1, 2])
         // Decode schema from json
         _ = avro.decodeSchema(schema: jsonSchema)!
         // encode to avro binray
@@ -38,6 +38,6 @@ final class SwiftAvroCoreTests: XCTestCase {
     }
     static var allTests = [
         ("testExample", testExample),
-        ("testEndToEnd", testEndToEnd),
+        ("testEndToEnd", testEndToEnd)
     ]
 }

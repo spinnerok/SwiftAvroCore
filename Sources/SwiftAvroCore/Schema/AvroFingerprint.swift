@@ -31,29 +31,29 @@ import Foundation
 /// }
 
 public class AvroFingerPrint {
-    private let EMPTY: Int64 = -4513414715797952619;
+    private let EMPTY: Int64 = -4513414715797952619
     private let TABLE_SIZE = 256
     private var FingerPrintTable: [Int64]
-    
+
     /// Avro 64-bit Rabin fingerprint
     func fingerPrint64(_ data: [UInt8]) -> Int64 {
-        var fingerPrint = EMPTY;
+        var fingerPrint = EMPTY
         for value in data {
             fingerPrint = (fingerPrint >> 8) ^ FingerPrintTable[Int((fingerPrint ^ Int64(value)) & 0xff)]
         }
-        return fingerPrint;
+        return fingerPrint
     }
-    
+
     init() {
         self.FingerPrintTable = [Int64]()
         self.FingerPrintTable.reserveCapacity(TABLE_SIZE)
         for i in 0..<TABLE_SIZE {
             var fingerPrint = Int64(i)
             for _ in 0..<8 {
-                let mask = -(fingerPrint & 0x1);
-                fingerPrint = (fingerPrint >> 1) ^ (EMPTY & mask);
+                let mask = -(fingerPrint & 0x1)
+                fingerPrint = (fingerPrint >> 1) ^ (EMPTY & mask)
             }
-            self.FingerPrintTable[i] = fingerPrint;
+            self.FingerPrintTable[i] = fingerPrint
         }
     }
     init(size: Int) {
@@ -62,11 +62,10 @@ public class AvroFingerPrint {
         for i in 0..<size {
             var fingerPrint = Int64(i)
             for _ in 0..<8 {
-                let mask = -(fingerPrint & 0x1);
-                fingerPrint = (fingerPrint >> 1) ^ (EMPTY & mask);
+                let mask = -(fingerPrint & 0x1)
+                fingerPrint = (fingerPrint >> 1) ^ (EMPTY & mask)
             }
-            self.FingerPrintTable[i] = fingerPrint;
+            self.FingerPrintTable[i] = fingerPrint
         }
     }
 }
-

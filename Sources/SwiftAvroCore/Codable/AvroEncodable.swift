@@ -18,14 +18,14 @@
 
 import Foundation
 public final class AvroEncoder {
-    //private var encoder: Encoder? = nil
-    public var userInfo: [CodingUserInfoKey : Any] = [CodingUserInfoKey : Any]()
+    // private var encoder: Encoder? = nil
+    public var userInfo: [CodingUserInfoKey: Any] = [CodingUserInfoKey: Any]()
     fileprivate let infoKey = CodingUserInfoKey(rawValue: "encodeOption")!
-    
+
     init() {
         userInfo[infoKey] = AvroEncodingOption.AvroBinary
     }
-    func setUserInfo(userInfo: [CodingUserInfoKey : Any]) {
+    func setUserInfo(userInfo: [CodingUserInfoKey: Any]) {
         self.userInfo = userInfo
     }
     func encode<T: Encodable>(_ type: T, schema: AvroSchema) throws -> Data {
@@ -41,7 +41,7 @@ public final class AvroEncoder {
             return try encoder.getData()
         }
     }
-    
+
     func sizeOf<T: Encodable>(_ type: T, schema: AvroSchema) throws -> Int {
         let encoder = AvroBinaryEncoder(schema: schema, primitiveEncoder: AvroPrimitiveSizer())
         try encoder.encode(type)
@@ -54,14 +54,14 @@ public final class AvroEncoder {
  */
 fileprivate final class AvroBinaryEncoder: Encoder {
     public var codingPath: [CodingKey] = []
-    
-    public var userInfo: [CodingUserInfoKey : Any] = [CodingUserInfoKey : Any]()
-    var unkeyedContainerCache: AvroUnkeyedEncodingContainer? = nil
+
+    public var userInfo: [CodingUserInfoKey: Any] = [CodingUserInfoKey: Any]()
+    var unkeyedContainerCache: AvroUnkeyedEncodingContainer?
     public var encodeKey: Bool = false
     public func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> {
         return KeyedEncodingContainer(AvroKeyedEncodingContainer<Key>(encoder: self, schema: schema))
     }
-    public var currrentType: Mirror? = nil
+    public var currrentType: Mirror?
     public func unkeyedContainer() -> UnkeyedEncodingContainer {
         if let container = unkeyedContainerCache {
             return container
@@ -69,11 +69,11 @@ fileprivate final class AvroBinaryEncoder: Encoder {
         unkeyedContainerCache = AvroUnkeyedEncodingContainer(encoder: self, schema: schema)
         return unkeyedContainerCache!
     }
-    
+
     public func singleValueContainer() -> SingleValueEncodingContainer {
         return AvroSingleEncodingContainer(encoder: self, schema: schema)
     }
-    public func encode<T : Encodable>(_ value: T) throws {
+    public func encode<T: Encodable>(_ value: T) throws {
         switch schema {
         case .bytesSchema:
             primitive.encode(value as! [UInt8])
@@ -110,21 +110,21 @@ fileprivate final class AvroBinaryEncoder: Encoder {
             try value.encode(to: self)
         }
     }
-   
+
     internal var primitive: AvroPrimitiveEncodeProtocol
-    
+
     var schema: AvroSchema
-    
+
     init(schema: AvroSchema) {
         self.schema = schema
         self.primitive = AvroPrimitiveEncoder()
     }
-    
+
     init(other: inout AvroBinaryEncoder, schema: AvroSchema) {
         self.schema = schema
         self.primitive = other.primitive
     }
-    
+
     init(schema: AvroSchema, primitiveEncoder: AvroPrimitiveEncodeProtocol) {
         self.schema = schema
         self.primitive = primitiveEncoder
@@ -136,28 +136,28 @@ fileprivate final class AvroBinaryEncoder: Encoder {
         return primitive.size
     }
 }
-fileprivate struct skipNil {
+private struct skipNil {
     var before: [Int]
     var after: [Int]
 }
-fileprivate struct  AvroKeyedEncodingContainer<K: CodingKey>: KeyedEncodingContainerProtocol {
+private struct  AvroKeyedEncodingContainer<K: CodingKey>: KeyedEncodingContainerProtocol {
     typealias Key = K
-    
+
     var codingPath: [CodingKey] {
         return encoder.codingPath
     }
     let skipNils: [String: skipNil]
     var schemaMap: [String: AvroSchema] = [:]
-    
-    func schema(_ key: K) ->AvroSchema {
+
+    func schema(_ key: K) -> AvroSchema {
         if let sch = schemaMap[key.stringValue] {
             return sch
         }
         return schema
     }
-    
+
     var encoder: AvroBinaryEncoder
-    
+
     mutating func encodeUnionIndex(forKey key: K, typeName: AvroSchema.Types) -> Bool {
         if case .unionSchema(let param) = schema(key) {
             if let index = param.branches.firstIndex(where: { a in
@@ -175,108 +175,108 @@ fileprivate struct  AvroKeyedEncodingContainer<K: CodingKey>: KeyedEncodingConta
         }
         encoder.primitive.encodeNull()
     }
-    
+
     mutating func encode(_ value: Bool, forKey key: K) throws {
-        guard self.schema(key).isBoolean() || encodeUnionIndex(forKey:key, typeName:AvroSchema.Types.boolean) else {
+        guard self.schema(key).isBoolean() || encodeUnionIndex(forKey: key, typeName: AvroSchema.Types.boolean) else {
             throw BinaryEncodingError.typeMismatchWithSchemaBool
         }
         encoder.primitive.encode(value)
     }
-    
+
     mutating func encode(_ value: String, forKey key: K) throws {
-        guard self.schema(key).isString() || encodeUnionIndex(forKey:key, typeName:AvroSchema.Types.string) else {
+        guard self.schema(key).isString() || encodeUnionIndex(forKey: key, typeName: AvroSchema.Types.string) else {
             throw BinaryEncodingError.typeMismatchWithSchemaBool
         }
         encoder.primitive.encode(value)
     }
-    
+
     mutating func encode(_ value: Double, forKey key: K) throws {
-        guard self.schema(key).isDouble() || encodeUnionIndex(forKey:key, typeName:AvroSchema.Types.double) else {
+        guard self.schema(key).isDouble() || encodeUnionIndex(forKey: key, typeName: AvroSchema.Types.double) else {
             throw BinaryEncodingError.typeMismatchWithSchemaDouble
         }
         encoder.primitive.encode(value)
     }
-    
+
     mutating func encode(_ value: Float, forKey key: K) throws {
-        guard self.schema(key).isFloat() || encodeUnionIndex(forKey:key, typeName:AvroSchema.Types.float) else {
+        guard self.schema(key).isFloat() || encodeUnionIndex(forKey: key, typeName: AvroSchema.Types.float) else {
             throw BinaryEncodingError.typeMismatchWithSchemaFloat
         }
         encoder.primitive.encode(value)
     }
-    
+
     mutating func encode(_ value: Int, forKey key: K) throws {
-        guard self.schema(key).isInt() || encodeUnionIndex(forKey:key, typeName:AvroSchema.Types.int) else {
+        guard self.schema(key).isInt() || encodeUnionIndex(forKey: key, typeName: AvroSchema.Types.int) else {
             throw BinaryEncodingError.typeMismatchWithSchemaInt
         }
         encoder.primitive.encode(value)
     }
-    
+
     mutating func encode(_ value: Int8, forKey key: K) throws {
-        guard self.schema(key).isInt() || encodeUnionIndex(forKey:key, typeName:AvroSchema.Types.int) else {
+        guard self.schema(key).isInt() || encodeUnionIndex(forKey: key, typeName: AvroSchema.Types.int) else {
             throw BinaryEncodingError.typeMismatchWithSchemaInt8
         }
         encoder.primitive.encode(value)
     }
-    
+
     mutating func encode(_ value: Int16, forKey key: K) throws {
-        guard self.schema(key).isInt() || encodeUnionIndex(forKey:key, typeName:AvroSchema.Types.int) else {
+        guard self.schema(key).isInt() || encodeUnionIndex(forKey: key, typeName: AvroSchema.Types.int) else {
             throw BinaryEncodingError.typeMismatchWithSchemaInt16
         }
         encoder.primitive.encode(value)
     }
-    
+
     mutating func encode(_ value: Int32, forKey key: K) throws {
-        guard self.schema(key).isInt() || encodeUnionIndex(forKey:key, typeName:AvroSchema.Types.int) else {
+        guard self.schema(key).isInt() || encodeUnionIndex(forKey: key, typeName: AvroSchema.Types.int) else {
             throw BinaryEncodingError.typeMismatchWithSchemaInt32
         }
         encoder.primitive.encode(value)
     }
-    
+
     mutating func encode(_ value: Int64, forKey key: K) throws {
-        guard self.schema(key).isLong() || encodeUnionIndex(forKey:key, typeName:AvroSchema.Types.long) else {
+        guard self.schema(key).isLong() || encodeUnionIndex(forKey: key, typeName: AvroSchema.Types.long) else {
             throw BinaryEncodingError.typeMismatchWithSchemaInt64
         }
         encoder.primitive.encode(value)
     }
-    
+
     mutating func encode(_ value: UInt, forKey key: K) throws {
-        guard self.schema(key).isLong() || encodeUnionIndex(forKey:key, typeName:AvroSchema.Types.long) else {
+        guard self.schema(key).isLong() || encodeUnionIndex(forKey: key, typeName: AvroSchema.Types.long) else {
             throw BinaryEncodingError.typeMismatchWithSchemaUInt
         }
         encoder.primitive.encode(value)
     }
-    
+
     mutating func encode(_ value: UInt8, forKey key: K) throws {
-        guard self.schema(key).isFixed() || encodeUnionIndex(forKey:key, typeName:AvroSchema.Types.fixed) else {
+        guard self.schema(key).isFixed() || encodeUnionIndex(forKey: key, typeName: AvroSchema.Types.fixed) else {
             throw BinaryEncodingError.typeMismatchWithSchemaUInt8
         }
         encoder.primitive.encode(value)
     }
-    
+
     mutating func encode(_ value: UInt16, forKey key: K) throws {
-        guard self.schema(key).isInt() || encodeUnionIndex(forKey:key, typeName:AvroSchema.Types.int) else {
+        guard self.schema(key).isInt() || encodeUnionIndex(forKey: key, typeName: AvroSchema.Types.int) else {
             throw BinaryEncodingError.typeMismatchWithSchemaUInt16
         }
         encoder.primitive.encode(value)
     }
-    
+
     mutating func encode(_ value: UInt32, forKey key: K) throws {
-        guard self.schema(key).isLong() || encodeUnionIndex(forKey:key, typeName:AvroSchema.Types.long) else {
+        guard self.schema(key).isLong() || encodeUnionIndex(forKey: key, typeName: AvroSchema.Types.long) else {
             throw BinaryEncodingError.typeMismatchWithSchemaUInt32
         }
         encoder.primitive.encode(value)
     }
-    
+
     mutating func encode(_ value: UInt64, forKey key: K) throws {
-        guard self.schema(key).isLong() || encodeUnionIndex(forKey:key, typeName:AvroSchema.Types.long) else {
+        guard self.schema(key).isLong() || encodeUnionIndex(forKey: key, typeName: AvroSchema.Types.long) else {
             throw BinaryEncodingError.typeMismatchWithSchemaUInt64
         }
         encoder.primitive.encode(value)
     }
-    
-    mutating func encode<T>(_ value: T, forKey key: K) throws where T : Encodable {
+
+    mutating func encode<T>(_ value: T, forKey key: K) throws where T: Encodable {
         var skip: skipNil?
-        if skipNils.contains(where: { (k: String, value: skipNil) in
+        if skipNils.contains(where: { (k: String, _: skipNil) in
             k == key.stringValue
         }) {
             if let s = skipNils[key.stringValue] {
@@ -294,7 +294,7 @@ fileprivate struct  AvroKeyedEncodingContainer<K: CodingKey>: KeyedEncodingConta
                 try innerEncoder.encode(value)
                 return
             }
-            
+
         case .unionSchema(let union):
             if let index = union.branches.firstIndex(where: { s in
                 !s.isNull()
@@ -313,22 +313,22 @@ fileprivate struct  AvroKeyedEncodingContainer<K: CodingKey>: KeyedEncodingConta
             }
         }
     }
-   
-    mutating func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: K) -> KeyedEncodingContainer<NestedKey> where NestedKey : CodingKey {
+
+    mutating func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: K) -> KeyedEncodingContainer<NestedKey> where NestedKey: CodingKey {
         return KeyedEncodingContainer(AvroKeyedEncodingContainer<NestedKey>(
             encoder: encoder, schema: schema(key)))
     }
-    
+
     mutating func nestedUnkeyedContainer(forKey key: K) -> UnkeyedEncodingContainer {
         let keySchema = schema(key)
         let keyEncoder = AvroBinaryEncoder.init(other: &encoder, schema: keySchema)
         return AvroUnkeyedEncodingContainer(encoder: keyEncoder, schema: keySchema)
     }
-    
+
     mutating func superEncoder() -> Encoder {
         return encoder
     }
-    
+
     mutating func superEncoder(forKey key: K) -> Encoder {
         return encoder
     }
@@ -337,7 +337,7 @@ fileprivate struct  AvroKeyedEncodingContainer<K: CodingKey>: KeyedEncodingConta
     init(encoder: AvroBinaryEncoder, schema: AvroSchema) {
         self.encoder = encoder
         self.schema = schema
-       
+
         switch schema {
         case .recordSchema(let record):
             var valueKey = ""
@@ -398,8 +398,8 @@ fileprivate struct  AvroKeyedEncodingContainer<K: CodingKey>: KeyedEncodingConta
     }
 }
 
-fileprivate struct AvroUnkeyedEncodingContainer: UnkeyedEncodingContainer, EncodingHelper {
-    mutating func encode<T>(_ value: T) throws where T : Encodable {
+private struct AvroUnkeyedEncodingContainer: UnkeyedEncodingContainer, EncodingHelper {
+    mutating func encode<T>(_ value: T) throws where T: Encodable {
         /// encode nested types
         switch schema {
         case .bytesSchema:
@@ -414,7 +414,7 @@ fileprivate struct AvroUnkeyedEncodingContainer: UnkeyedEncodingContainer, Encod
             let mirror = Mirror(reflecting: value)
             encoder.primitive.encode(mirror.children.count)
             if mirror.children.count > 0 {
-                let d = AvroBinaryEncoder(other: &encoder ,schema: array.items)
+                let d = AvroBinaryEncoder(other: &encoder, schema: array.items)
                 try value.encode(to: d)
                 encoder.primitive.encode(UInt8(0))
             }
@@ -424,20 +424,20 @@ fileprivate struct AvroUnkeyedEncodingContainer: UnkeyedEncodingContainer, Encod
         count += 1
     }
     var count: Int
-    
-    func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type) -> KeyedEncodingContainer<NestedKey> where NestedKey : CodingKey {
+
+    func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type) -> KeyedEncodingContainer<NestedKey> where NestedKey: CodingKey {
         return KeyedEncodingContainer(AvroKeyedEncodingContainer<NestedKey>(
             encoder: encoder, schema: schema))
     }
-    
+
     func nestedUnkeyedContainer() -> UnkeyedEncodingContainer {
         return AvroUnkeyedEncodingContainer(encoder: encoder, schema: schema)
     }
-    
+
     func superEncoder() -> Encoder {
         return encoder
     }
-    
+
     var codingPath: [CodingKey] {
         return []
     }
@@ -445,7 +445,7 @@ fileprivate struct AvroUnkeyedEncodingContainer: UnkeyedEncodingContainer, Encod
     var schema: AvroSchema
     var identifier: Int
     private static var identifierFactory = 0
-    
+
     private static func getUniqueIdentifier() -> Int {
         identifierFactory += 1
         return identifierFactory
@@ -458,7 +458,7 @@ fileprivate struct AvroUnkeyedEncodingContainer: UnkeyedEncodingContainer, Encod
             }) {
                 self.schema = s
             } else {
-                //should throw here
+                // should throw here
                 self.schema = schema
             }
         } else {
@@ -469,29 +469,29 @@ fileprivate struct AvroUnkeyedEncodingContainer: UnkeyedEncodingContainer, Encod
     }
 }
 
-fileprivate struct AvroSingleEncodingContainer: SingleValueEncodingContainer, EncodingHelper {
+private struct AvroSingleEncodingContainer: SingleValueEncodingContainer, EncodingHelper {
     var codingPath: [CodingKey] {
         return []
     }
     var encoder: AvroBinaryEncoder
     var schema: AvroSchema
-    
+
     init(encoder: AvroBinaryEncoder, schema: AvroSchema) {
         self.encoder = encoder
         self.schema = schema
     }
-    mutating func encode<T>(_ value: T) throws where T : Encodable {
+    mutating func encode<T>(_ value: T) throws where T: Encodable {
         try value.encode(to: encoder)
     }
 }
-fileprivate protocol EncodingHelper {
+private protocol EncodingHelper {
     var codingPath: [CodingKey] { get }
     var encoder: AvroBinaryEncoder { get set}
     var schema: AvroSchema {get}
 }
 
 extension EncodingHelper {
-    
+
     mutating func encodeNil() throws {
         switch schema {
         case .nullSchema:
@@ -530,14 +530,14 @@ extension EncodingHelper {
         }
         encoder.primitive.encode(value)
     }
-    
+
     mutating func encode(_ value: Int32) throws {
         if !schema.isInt() {
             throw BinaryEncodingError.typeMismatchWithSchemaInt32
         }
         encoder.primitive.encode(value)
     }
-    
+
     mutating func encode(_ value: Int64) throws {
         if !schema.isLong() {
             throw BinaryEncodingError.typeMismatchWithSchemaInt64
@@ -584,7 +584,7 @@ extension EncodingHelper {
         }
         encoder.primitive.encode(value)
     }
-    
+
     mutating func encode(_ value: Double) throws {
         switch schema {
         case .doubleSchema:
@@ -608,7 +608,7 @@ extension EncodingHelper {
             throw BinaryEncodingError.typeMismatchWithSchemaDouble
         }
     }
-    
+
     mutating func encode(_ value: String) throws {
         switch schema {
         case .stringSchema:
@@ -635,12 +635,12 @@ extension EncodingHelper {
         }
         encoder.primitive.encode(value)
     }
-    
+
     mutating func encode(fixedValue: [UInt8]) throws {
         if !schema.isFixed() {
             throw BinaryEncodingError.typeMismatchWithSchema
         }
         encoder.primitive.encode(fixed: fixedValue)
     }
-    
+
 }

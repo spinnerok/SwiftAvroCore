@@ -8,7 +8,7 @@
 import Foundation
 
 struct MessageConstant {
-    static let requestSchema:String = """
+    static let requestSchema: String = """
    {
      "type": "record",
      "name": "HandshakeRequest",
@@ -21,8 +21,8 @@ struct MessageConstant {
      ]
    }
   """
-    
-    static let responseSchema:String = """
+
+    static let responseSchema: String = """
   {
     "type": "record",
     "name": "HandshakeResponse", "namespace": "org.apache.avro.ipc",
@@ -38,51 +38,51 @@ struct MessageConstant {
        "type": ["null", {"type": "map", "values": "bytes"}]}
     ]
   }
-  
+
   """
-    static let metadataSchema:String = """
+    static let metadataSchema: String = """
 {"type": "map", "values": "bytes"}
 """
-    
+
 }
-enum HandshakeMatch:String,Codable {
+enum HandshakeMatch: String, Codable {
     case BOTH
     case CLIENT
     case NONE
 }
 
-struct HandshakeRequest:Codable {
+struct HandshakeRequest: Codable {
     let clientHash: [UInt8]
     let clientProtocol: String?
     let serverHash: [UInt8]
     var meta: [String: [UInt8]]?
 }
 
-struct HandshakeResponse:Codable {
+struct HandshakeResponse: Codable {
     let match: HandshakeMatch
     let serverProtocol: String?
     let serverHash: [UInt8]?
     var meta: [String: [UInt8]]?
 }
 
-struct RequestHeader:Codable {
+struct RequestHeader: Codable {
     let meta: [String: [UInt8]]?
     let name: String
 }
 
-struct ResponseHeader:Codable {
+struct ResponseHeader: Codable {
     let meta: [String: [UInt8]]?
     let flag: Bool
 }
 
 class Context {
-    let requestMeta:[String: [UInt8]]
+    let requestMeta: [String: [UInt8]]
     let responseMeta: [String: [UInt8]]
     let requestSchema: AvroSchema
     let responseSchema: AvroSchema
     let metaSchema: AvroSchema
-    
-    init(requestMeta:[String: [UInt8]], responseMeta:[String: [UInt8]]) {
+
+    init(requestMeta: [String: [UInt8]], responseMeta: [String: [UInt8]]) {
         self.requestMeta = requestMeta
         self.responseMeta = responseMeta
         let avro = Avro()
@@ -119,7 +119,7 @@ extension Data {
         self.append(contentsOf: ending)
         return
     }
-    
+
     public func deFraming() -> [Data] {
         guard self.count > 4 else {
             return []

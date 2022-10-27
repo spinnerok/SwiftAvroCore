@@ -32,27 +32,27 @@ internal class AvroPrimitiveEncoder: AvroPrimitiveEncodeProtocol {
     func append(_ other: AvroPrimitiveEncodeProtocol) {
         buffer.append(contentsOf: other.buffer)
     }
-    
+
     func encodeNull() {
         return
     }
-    
+
     func encode(_ value: Bool) {
         buffer.append(value ? 1 : 0)
     }
-    
+
     func encode(_ value: Int) {
         putVarInt(value: UInt64(Int64(value).encodeToZigZag()))
     }
-    
+
     func encode(_ value: Int8) {
         putVarInt(value: UInt64(Int32(value).encodeToZigZag()))
     }
-    
+
     func encode(_ value: Int16) {
         putVarInt(value: UInt64(Int32(value).encodeToZigZag()))
     }
-    
+
     func encode(_ value: Int32) {
         putVarInt(value: UInt64(value.encodeToZigZag()))
     }
@@ -63,15 +63,15 @@ internal class AvroPrimitiveEncoder: AvroPrimitiveEncodeProtocol {
     func encode(_ value: UInt) {
         putVarInt(value: UInt64(Int64(value).encodeToZigZag()))
     }
-    
+
     func encode(_ value: UInt8) {
         buffer.append(value)
     }
-    
+
     func encode(_ value: UInt16) {
         putVarInt(value: UInt64(Int32(value).encodeToZigZag()))
     }
-    
+
     func encode(_ value: UInt32) {
         var shiftValue = value
         for _ in 0..<4 {
@@ -79,11 +79,11 @@ internal class AvroPrimitiveEncoder: AvroPrimitiveEncodeProtocol {
             shiftValue >>= 8
         }
     }
-    
+
     func encode(_ value: UInt64) {
         putVarInt(value: UInt64(Int64(value).encodeToZigZag()))
     }
-    
+
     func encode(_ value: Float) {
         let size = MemoryLayout<Float>.size
         var shiftValue = value.bitPattern
@@ -92,7 +92,7 @@ internal class AvroPrimitiveEncoder: AvroPrimitiveEncodeProtocol {
             shiftValue >>= 8
         }
     }
-    
+
     func encode(_ value: Double) {
         let size = MemoryLayout<Double>.size
         var shiftValue = value.bitPattern
@@ -101,29 +101,29 @@ internal class AvroPrimitiveEncoder: AvroPrimitiveEncodeProtocol {
             shiftValue >>= 8
         }
     }
-    
+
     func encode(_ value: String) {
         encode(Int64(value.utf8.count))
         buffer.append(contentsOf: [UInt8](value.utf8))
     }
-    
+
     func encode(_ value: [UInt8]) {
         encode(Int64(value.count))
         buffer.append(contentsOf: value)
     }
-    
+
     func encode(fixed: [UInt8]) {
         buffer.append(contentsOf: fixed)
         return
     }
-    
+
     func encode(fixed: [UInt32]) {
         for v in fixed {
             encode(v)
         }
         return
     }
-    
+
     private func putVarInt(value: UInt64) {
         var v = value
         while v > 127 {
@@ -132,7 +132,7 @@ internal class AvroPrimitiveEncoder: AvroPrimitiveEncodeProtocol {
         }
         buffer.append(UInt8(v))
     }
-} 
+}
 
 extension Int32 {
     public func encodeToZigZag() -> UInt32 {

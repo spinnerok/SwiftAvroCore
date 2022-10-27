@@ -13,21 +13,21 @@ class MessageResponse {
     var sessionCache: [[uint8]: AvroProtocol]
     var serverResponse: HandshakeResponse
 
-    public init(context:Context, serverHash: [uint8], serverProtocol: String) throws {
+    public init(context: Context, serverHash: [uint8], serverProtocol: String) throws {
         self.avro = Avro()
         self.context = context
         self.avro.setSchema(schema: context.responseSchema)
-        self.sessionCache = [[uint8]:AvroProtocol]()
-        self.serverResponse = HandshakeResponse(match: HandshakeMatch.NONE,serverProtocol: serverProtocol, serverHash: serverHash, meta: context.responseMeta)
+        self.sessionCache = [[uint8]: AvroProtocol]()
+        self.serverResponse = HandshakeResponse(match: HandshakeMatch.NONE, serverProtocol: serverProtocol, serverHash: serverHash, meta: context.responseMeta)
     }
-    
+
     func encodeHandshakeResponse(response: HandshakeResponse) throws -> Data {
         return try avro.encode(response)
     }
     public func addSupportPotocol(protocolString: String, hash: [uint8]) throws {
-        sessionCache[hash] = try JSONDecoder().decode(AvroProtocol.self,from: protocolString.data(using: .utf8)!)
+        sessionCache[hash] = try JSONDecoder().decode(AvroProtocol.self, from: protocolString.data(using: .utf8)!)
     }
-    
+
     /*
      avro handshake
      client --->
@@ -40,7 +40,7 @@ class MessageResponse {
      In this case the client must then re-submit its request with its protocol text (clientHash!=null, clientProtocol!=null, serverHash!=null) and the server should respond with a successful match (match=BOTH, serverProtocol=null, serverHash=null) as above.
     */
     public func resolveHandshakeRequest(requestData: Data) throws -> (HandshakeRequest, Data) {
-        let request = try avro.decodeFrom(from:requestData, schema: context.requestSchema) as HandshakeRequest
+        let request = try avro.decodeFrom(from: requestData, schema: context.requestSchema) as HandshakeRequest
         if request.clientHash.count != 16 {
             throw AvroHandshakeError.noClientHash
         }
@@ -50,22 +50,22 @@ class MessageResponse {
             }
             return (request, try encodeHandshakeResponse(response: HandshakeResponse(match: HandshakeMatch.BOTH, serverProtocol: nil, serverHash: nil)))
         }
-        if let clientProtocol = request.clientProtocol,request.serverHash == serverResponse.serverHash {
-            try addSupportPotocol(protocolString:clientProtocol ,hash:request.clientHash)
+        if let clientProtocol = request.clientProtocol, request.serverHash == serverResponse.serverHash {
+            try addSupportPotocol(protocolString: clientProtocol, hash: request.clientHash)
             return (request, try encodeHandshakeResponse(response: HandshakeResponse(match: HandshakeMatch.BOTH, serverProtocol: nil, serverHash: nil)))
         }
         // client use this response to retrieve the supported protocol from server
         return (request, try encodeHandshakeResponse(response: HandshakeResponse(match: HandshakeMatch.NONE, serverProtocol: serverResponse.serverProtocol, serverHash: serverResponse.serverHash)))
     }
-    
+
     public func outdateSession(header: HandshakeRequest) {
         sessionCache.removeValue(forKey: header.clientHash)
     }
-    
+
     public func clearSession() {
         sessionCache.removeAll()
     }
-    
+
     /*
      The format of a call response is:
      * response metadata, a map with values of type bytes
@@ -73,7 +73,7 @@ class MessageResponse {
      ** if the error flag is false, the message response, serialized per the message's response schema.
      ** if the error flag is true, the error, serialized per the message's effective error union schema.
     */
-    public func writeResponse<T:Codable>(header: HandshakeRequest, messageName: String, parameter: T) throws -> Data {
+    public func writeResponse<T: Codable>(header: HandshakeRequest, messageName: String, parameter: T) throws -> Data {
         var data = Data()
         if let meta = header.meta {
             let d = try? avro.encodeFrom(meta, schema: context.metaSchema)
@@ -81,7 +81,7 @@ class MessageResponse {
         } else {
             data.append(contentsOf: [UInt8(0)])
         }
-        
+
         if let serverProtocol = sessionCache[header.serverHash],
            let responseSchema = serverProtocol.getResponse(messageName: messageName) {
                 let flag = try? avro.encodeFrom(false, schema: AvroSchema.init(type: "boolean"))
@@ -91,8 +91,8 @@ class MessageResponse {
         }
         return data
     }
-    
-    public func writeErrorResponse<T:Codable>(header: HandshakeRequest,messageName: String, errors: [String: T]) throws -> Data {
+
+    public func writeErrorResponse<T: Codable>(header: HandshakeRequest, messageName: String, errors: [String: T]) throws -> Data {
         var data = Data()
         if let meta = header.meta {
             let d = try? avro.encodeFrom(meta, schema: context.metaSchema)
@@ -100,18 +100,18 @@ class MessageResponse {
         } else {
             data.append(contentsOf: [UInt8(0)])
         }
-       
+
         if let serverProtocol = sessionCache[header.serverHash],
            let errorSchemas = serverProtocol.getErrors(messageName: messageName) {
                 let flag = try? avro.encodeFrom(true, schema: AvroSchema.init(type: "boolean"))
                 data.append(flag!)
                 for (k, v) in errors {
                     if let schema = errorSchemas[k] {
-                        data.append(contentsOf: [UInt8(2)]) //union 1
+                        data.append(contentsOf: [UInt8(2)]) // union 1
                         let d = try? avro.encodeFrom(v, schema: schema)
                         data.append(d!)
                     } else {
-                        data.append(contentsOf: [UInt8(0)]) //union 0
+                        data.append(contentsOf: [UInt8(0)]) // union 0
                         let d = try? avro.encodeFrom(v, schema: AvroSchema.init(type: "string"))
                         data.append(d!)
                     }
@@ -119,31 +119,31 @@ class MessageResponse {
         }
         return data
     }
-    
-    public func readRequest<T:Codable>(header: HandshakeRequest, from: Data)throws -> (RequestHeader, [T]) {
-        let (hasMeta, metaIndex) = try! avro.decodeFromContinue(from: from, schema: AvroSchema.init(type: "int")) as (Int,Int)
+
+    public func readRequest<T: Codable>(header: HandshakeRequest, from: Data)throws -> (RequestHeader, [T]) {
+        let (hasMeta, metaIndex) = try! avro.decodeFromContinue(from: from, schema: AvroSchema.init(type: "int")) as (Int, Int)
         var meta: [String: [UInt8]]?
         var nameIndex = metaIndex
         if hasMeta == 0 {
             meta = nil
         } else {
-            (meta, nameIndex) = try! avro.decodeFromContinue(from: from.advanced(by: metaIndex), schema: context.metaSchema) as ([String: [UInt8]]?,Int)
+            (meta, nameIndex) = try! avro.decodeFromContinue(from: from.advanced(by: metaIndex), schema: context.metaSchema) as ([String: [UInt8]]?, Int)
             nameIndex = nameIndex+metaIndex
         }
-        let (messageName, paramIndex) = try! avro.decodeFromContinue(from: from.advanced(by: nameIndex), schema: AvroSchema.init(type: "string")) as (String?,Int)
+        let (messageName, paramIndex) = try! avro.decodeFromContinue(from: from.advanced(by: nameIndex), schema: AvroSchema.init(type: "string")) as (String?, Int)
         if let name = messageName {
             var param = [T]()
             if let serverProtocol = sessionCache[header.serverHash],
                let requestSchemas = serverProtocol.getRequest(messageName: name) {
                 var index = nameIndex+paramIndex
                 for r in requestSchemas {
-                    let (p, nextIndex) = try! avro.decodeFromContinue(from: from.advanced(by: index), schema: r) as (T,Int)
+                    let (p, nextIndex) = try! avro.decodeFromContinue(from: from.advanced(by: index), schema: r) as (T, Int)
                     param.append(p)
                     index = nextIndex
                 }
             }
-            return (RequestHeader(meta:meta, name:name), param)
+            return (RequestHeader(meta: meta, name: name), param)
         }
-        return (RequestHeader(meta:meta, name:""),[])
+        return (RequestHeader(meta: meta, name: ""), [])
     }
 }

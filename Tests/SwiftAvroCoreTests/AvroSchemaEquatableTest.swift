@@ -70,25 +70,25 @@ class AvroSchemaEquatableTest: XCTestCase {
         let sample2 = "{ \"type\" : \"float\"}"
         testEquable(same1: sample1, same2: sample1, diff: sample2)
     }
-    
+
     func testFloat() {
         let sample1 = "{ \"type\" : \"float\"}"
         let sample2 = "{ \"type\" : \"double\"}"
         testEquable(same1: sample1, same2: sample1, diff: sample2)
     }
-    
+
     func testDouble() {
         let sample1 = "{ \"type\" : \"double\"}"
         let sample2 = "{ \"type\" : \"string\"}"
         testEquable(same1: sample1, same2: sample1, diff: sample2)
     }
-    
+
     func testString() {
         let sample1 = "{ \"type\" : \"string\"}"
         let sample2 = "{ \"type\" : \"bytes\"}"
         testEquable(same1: sample1, same2: sample1, diff: sample2)
     }
-    
+
     func testBytes() {
         let sample1 = "{ \"type\" : \"bytes\"}"
         let sample2 = "{ \"type\" : \"array\", \"items\" : \"bytes\" }"
@@ -122,7 +122,7 @@ class AvroSchemaEquatableTest: XCTestCase {
         let sample2 = "[ \"double\", \"float\", \"int\", \"long\" ]"
         testEquable(same1: sample1, same2: sample1, diff: sample2)
     }
-    
+
     func testRecord() {
         let diff1 = """
 {
@@ -181,6 +181,6 @@ class AvroSchemaEquatableTest: XCTestCase {
         ("testArray", testArray),
         ("testMap", testMap),
         ("testUnion", testUnion),
-        ("testRecord", testRecord),
+        ("testRecord", testRecord)
         ]
 }

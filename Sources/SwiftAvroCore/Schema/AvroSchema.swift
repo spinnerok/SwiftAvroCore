@@ -37,32 +37,32 @@ public enum AvroSchema: Codable, Hashable {
     indirect case unionSchema(UnionSchema)
     case fixedSchema(FixedSchema)
     /// rpc types
-    //indirect case messageSchema(MessageSchema)
-    //indirect case protocolSchema(ProtocolSchema)
+    // indirect case messageSchema(MessageSchema)
+    // indirect case protocolSchema(ProtocolSchema)
     indirect case errorSchema(ErrorSchema)
     /// private types
     indirect case fieldsSchema([FieldSchema])
     indirect case fieldSchema(FieldSchema)
     /// invalid type
     case unknownSchema(UnknownSchema)
-    
+
     internal enum LogicalType: String, Codable {
         case decimal, date,
         timeMillis = "time-millis", timeMicros = "time-micros",
         timestampMillis = "timestamp-millis", timestampMicros = "timestamp-micros", duration
     }
     internal enum Types: String, Codable {
-        case null,boolean,int,long,float,double,bytes,string,
+        case null, boolean, int, long, float, double, bytes, string,
         /// complex types
-        record,enums = "enum",array,map,union,fixed,
+        record, enums = "enum", array, map, union, fixed,
         /// rpc types
         protocolName = "protocol", message, errors,
         /// private type
-        field,error,
+        field, error,
         /// invalid type
         invalid
     }
- 
+
     /// default init to invalid schema
     public init() {
         self = .unknownSchema(UnknownSchema(""))
@@ -125,14 +125,14 @@ public enum AvroSchema: Codable, Hashable {
         case .fieldSchema(let param):
             return param.name
         /// rpc type
-        //case .protocolSchema(let param):
+        // case .protocolSchema(let param):
           //  return param.name
         case .errorSchema(let param):
             return param.name
         default: return nil
         }
     }
-    
+
     public func getFullname() -> String? {
         switch self {
         case .recordSchema(let param):
@@ -153,7 +153,7 @@ public enum AvroSchema: Codable, Hashable {
             return self.getName()
         }
     }
-    public func getTypeName() ->String {
+    public func getTypeName() -> String {
         switch self {
         case .nullSchema: return Types.null.rawValue
         case .booleanSchema: return Types.boolean.rawValue
@@ -197,7 +197,7 @@ public enum AvroSchema: Codable, Hashable {
     }
 
 /// structure to encode and decode record in json
-public struct RecordSchema : Equatable, NameSchemaProtocol {
+public struct RecordSchema: Equatable, NameSchemaProtocol {
     var name: String?
     var namespace: String?
     var type: String
@@ -207,9 +207,9 @@ public struct RecordSchema : Equatable, NameSchemaProtocol {
     private enum CodingKeys: CodingKey {
         case name, type, namespace, aliases, fields, doc
     }
-    
+
     var resolution: ResolutionMethod = .useDefault
-    
+
     public mutating func addField(_ field: AvroSchema) {
         fields.append(FieldSchema(name: field.getName()!, type: field, doc: nil, order: nil, aliases: nil, defaultValue: nil, optional: nil))
     }
@@ -227,7 +227,7 @@ public struct RecordSchema : Equatable, NameSchemaProtocol {
 }
 
 /// structure to encode and decode fields in json
-public struct FieldSchema : Equatable, Codable {
+public struct FieldSchema: Equatable, Codable {
     let name: String
     var type: AvroSchema
     let doc: String?
@@ -238,7 +238,7 @@ public struct FieldSchema : Equatable, Codable {
     var resolution: ResolutionMethod = .useDefault
 }
 /// structure to encode and decode enum in json
-public struct EnumSchema : Equatable, NameSchemaProtocol {
+public struct EnumSchema: Equatable, NameSchemaProtocol {
     var name: String?
     var namespace: String?
     var type: String
@@ -246,25 +246,25 @@ public struct EnumSchema : Equatable, NameSchemaProtocol {
     let doc: String?
     var symbols: [String]
     var resolution: ResolutionMethod = .useDefault
-    
+
     private enum CodingKeys: CodingKey {
         case name, type, namespace, aliases, symbols, doc
     }
 }
 
 /// structure to encode and decode array in json
-public struct ArraySchema : Equatable, Codable {
+public struct ArraySchema: Equatable, Codable {
     let type: String
     var items: AvroSchema
     var resolution: ResolutionMethod = .useDefault
-    
+
     private enum CodingKeys: CodingKey {
         case type, items
     }
 }
 
 /// structure to encode and decode map in json
-public struct MapSchema : Equatable, Codable {
+public struct MapSchema: Equatable, Codable {
     let type: String
     var values: AvroSchema
     var resolution: ResolutionMethod = .useDefault
@@ -274,15 +274,15 @@ public struct MapSchema : Equatable, Codable {
 }
 
 /// structure to encode and decode fixed in json
-public struct FixedSchema : Equatable, NameSchemaProtocol {
-    var name: String? = nil
-    var namespace: String? = nil
+public struct FixedSchema: Equatable, NameSchemaProtocol {
+    var name: String?
+    var namespace: String?
     var type: String = "fixed"
-    var aliases: Set<String>? = nil
-    var logicalType: LogicalType? = nil /// must be "duration/decimal" if set, the size of duration must be 12
+    var aliases: Set<String>?
+    var logicalType: LogicalType? /// must be "duration/decimal" if set, the size of duration must be 12
     var size: Int = 0
-    var precision: Int? = nil
-    var scale: Int? = nil
+    var precision: Int?
+    var scale: Int?
     var resolution: ResolutionMethod = .useDefault
     private enum CodingKeys: CodingKey {
         case name, type, namespace, aliases, size, logicalType, precision, scale
@@ -297,7 +297,7 @@ public struct FixedSchema : Equatable, NameSchemaProtocol {
                 /// need to be replace with a func of cross platform lib
                 if p > size {
                     let bits = (size - 1) << 3
-                    var realPrecision = Int (bits / 10) * 3
+                    var realPrecision = Int(bits / 10) * 3
                     if p <= realPrecision {
                         return true
                     }
@@ -322,14 +322,14 @@ public struct FixedSchema : Equatable, NameSchemaProtocol {
 }
 
 /// structure to encode and decode bytes in json
-public struct BytesSchema : Equatable, Codable {
-    var type:String = "bytes"
+public struct BytesSchema: Equatable, Codable {
+    var type: String = "bytes"
     /// for logic decimal type
-    var logicalType: LogicalType? = nil //must be "decimal" if set
-    var precision: Int? = nil
-    var scale: Int? = nil
-    
-    init(){}
+    var logicalType: LogicalType? // must be "decimal" if set
+    var precision: Int?
+    var scale: Int?
+
+    init() {}
     init(logicalType: LogicalType, precision: Int, scale: Int) {
         self.logicalType = logicalType
         self.precision = precision
@@ -349,11 +349,11 @@ public struct BytesSchema : Equatable, Codable {
 }
 
 /// structure to encode and decode int, logic date and millis in json
-public struct UnionSchema : Equatable, Codable {
+public struct UnionSchema: Equatable, Codable {
     var name: String?
     let optional: String?
     /// for logic decimal type
-    var branches: [AvroSchema]//can be <"date"/"time-millis">
+    var branches: [AvroSchema]// can be <"date"/"time-millis">
     init(branches: [AvroSchema]) {
         self.name = nil
         self.optional = nil
@@ -368,10 +368,10 @@ public struct UnionSchema : Equatable, Codable {
 
 /// structure to encode and decode int, logic date and millis in json
 /// or long, logic time-micros, timestamp-millis
-public struct IntSchema : Equatable, Codable {
-    let type:String
+public struct IntSchema: Equatable, Codable {
+    let type: String
     /// for logic decimal type
-    var logicalType: LogicalType? = nil//can be <"date"/"time-millis">
+    var logicalType: LogicalType?// can be <"date"/"time-millis">
     init() {
         self.type = "int"
         self.logicalType = nil
@@ -385,8 +385,8 @@ public struct IntSchema : Equatable, Codable {
         self.logicalType = logicalType
     }
 }
-    
-public struct UnknownSchema:NameSchemaProtocol{
+
+public struct UnknownSchema: NameSchemaProtocol {
     var type: String
     var name: String?
     var namespace: String?
@@ -409,14 +409,14 @@ public struct UnknownSchema:NameSchemaProtocol{
 }
     struct StringCodingKey: CodingKey {
         var intValue: Int?
-        
+
         let stringValue: String
-        
+
         init?(stringValue: String) {
             self.stringValue = stringValue
             self.intValue = Int(stringValue)
         }
-        
+
         init?(intValue: Int) {
             self.stringValue = "\(intValue)"
             self.intValue = intValue
@@ -487,13 +487,13 @@ extension NameSchemaProtocol {
                 return n
             }
             if let ns = self.namespace {
-                return [ns, n].joined(separator:  ".")
+                return [ns, n].joined(separator: ".")
             }
             return n
         }
         return self.type
     }
-    
+
     public func getNamespace() -> String? {
         if let n = name, n.contains(".") {
             let index = n.lastIndex(of: ".") ?? n.endIndex
@@ -502,11 +502,11 @@ extension NameSchemaProtocol {
         }
         return namespace
     }
-    
+
     func getNamespace(name: String) -> String? {
-        return [getFullname(),name].joined(separator: ".")
+        return [getFullname(), name].joined(separator: ".")
     }
-    
+
     func parentNamespace() -> String? {
         if let ns = namespace, ns.contains(".") {
             let index = ns.lastIndex(of: ".") ?? ns.endIndex
@@ -514,16 +514,15 @@ extension NameSchemaProtocol {
         }
         return nil
     }
-    
+
     func replaceParentNamespace(name: String?) -> String? {
         if let n = name, let ns = parentNamespace() {
-            return [ns,n].joined(separator: ".")
+            return [ns, n].joined(separator: ".")
         }
         return namespace
     }
-    
-    mutating func setName(name: String?)  {
+
+    mutating func setName(name: String?) {
         self.name = name
     }
 }
-

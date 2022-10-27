@@ -40,5 +40,5 @@ func testObjectContainerFile() {
         XCTAssert(false, "compress failed")
     }
 }
-    
+
 }
